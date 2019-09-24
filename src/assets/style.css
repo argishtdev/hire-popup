@@ -1,0 +1,62 @@
+body {
+    color: gray;
+}
+a {
+    text-decoration: none !important;
+}
+p {
+    margin-bottom: 0;
+}
+#hire-modal {
+    padding-left: 0 !important;
+}
+.modal-body {
+    padding: 0;
+}
+.main-image {
+    width: 100%;
+}
+.form-group label {
+    color: grey;
+    font-weight: bold;
+}
+select.custom-select {
+    width: 100%;
+    background-color: #f1f0f0 !important;
+    text-align: left;
+    color: grey;
+    border: transparent;
+}
+select.custom-select:focus {
+    box-shadow: none;
+    border-color: transparent;
+}
+select.custom-select {
+    background: none;
+}
+.container {
+    padding: 0;
+}
+.custom-control-label::before {
+    border: 3px solid #000;
+}
+.custom-radio .custom-control-input:checked ~ .custom-control-label::after {
+    background-image: none;
+}
+@media screen and (max-width: 450px) {
+    body, .form-control, .custom-select {
+        font-size: .75rem !important;
+    }
+    h3 {
+        font-size: 1rem !important;
+    }
+    .h4 {
+        font-size: 1.2rem !important;
+    }
+    .footer-section .cart-icon {
+        margin-top: 4px !important;
+    }
+    .totalSum {
+        padding-top: 0 !important;
+    }
+}
