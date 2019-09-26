@@ -11,101 +11,137 @@
               <b-link class="bg-light bg-light-link" :href="order.header.publication.startsWith('http') ? order.header.publication : 'http://' + order.header.publication" target="_blank">{{order.header.publication}}</b-link>
               <p class="blue-text">{{order.header.description}}</p>
           </div>
-          <div class="body-section">
+          <ValidationObserver v-slot="{ invalid }">
               <b-form class="overflow-hidden">
-                  <template v-for="group in order.Order_details">
-                      <!--eslint-disable-next-line-->
-                      <b-form-group
-                              v-if="group.name === 'source'"
-                              label="source"
-                              label-for="source"
-                              description="We'll never share your email with anyone else."
-                      >
-                          <b-form-input
-                                  id="source"
-                                  v-model="newOrder.source"
-                                  type="text"
-                                  required
-                                  :placeholder="group.placeholder"
-                          ></b-form-input>
-                      </b-form-group>
-                      <!--eslint-disable-next-line-->
-                      <b-form-group
-                              v-if="group.name === 'instructions'"
-                              label="instructions"
-                              label-for="source"
-                              description="We'll never share your email with anyone else."
-                      >
-                          <b-form-textarea
-                                  id="instructions"
-                                  v-model="newOrder.instructions"
-                                  required
-                                  :placeholder="group.placeholder"
-                                  rows="3"
-                                  max-rows="6"
-                          ></b-form-textarea>
-                      </b-form-group>
-                      <!--eslint-disable-next-line-->
-                      <div v-if="group.name === 'number_writers'" class="w-50 pr-3 float-left">
+                  <div class="body-section">
+                      <template v-for="group in order.Order_details">
+                          <!--eslint-disable-next-line-->
                           <b-form-group
-                                  label="number of writers"
-                                  label-for="number_writers"
-                                  class="position-relative"
+                                      v-if="group.name === 'source'"
+                                      label="source"
+                                      label-for="source"
+                              >
+                                  <validation-provider
+                                          :rules="isUrl"
+                                          v-slot="{ errors }"
+                                          name="source"
+                                  >
+                                      <b-form-input
+                                              id="source"
+                                              v-model="newOrder.source"
+                                              type="text"
+                                              required
+                                              :placeholder="group.placeholder"
+                                      ></b-form-input>
+                                      <span>{{ errors[0] }}</span>
+                                  </validation-provider>
+                              </b-form-group>
+                          <!--eslint-disable-next-line-->
+                          <b-form-group
+                                  v-if="group.name === 'instructions'"
+                                  label="instructions"
+                                  label-for="source"
                           >
-                              <b-form-select v-model="newOrder.number_writers" :options="writersCountArray"></b-form-select>
-                              <span class="select-icon">
-                                  <font-awesome-icon icon="chevron-down" />
-                              </span>
+                              <validation-provider
+                                      :rules="wordsLimit"
+                                      v-slot="{ errors }"
+                                      name="instructions"
+                              >
+                                  <b-form-textarea
+                                          id="instructions"
+                                          v-model="newOrder.instructions"
+                                          required
+                                          :placeholder="group.placeholder"
+                                          rows="3"
+                                          max-rows="6"
+                                  ></b-form-textarea>
+                                  <span>{{ errors[0] }}</span>
+                              </validation-provider>
                           </b-form-group>
+                          <!--eslint-disable-next-line-->
+                          <div v-if="group.name === 'number_writers'" class="w-50 pr-3 float-left">
+                              <b-form-group
+                                      label="number of writers"
+                                      label-for="number_writers"
+                                      class="position-relative"
+                              >
+                                  <validation-provider
+                                          rules="between:1,15"
+                                          v-slot="{ errors }"
+                                          name="number of writers"
+                                  >
+                                      <b-form-select v-model="newOrder.number_writers" :options="writersCountArray"></b-form-select>
+                                      <span class="select-icon">
+                                          <font-awesome-icon icon="chevron-down" />
+                                      </span>
+                                      <span>{{ errors[0] }}</span>
+                                  </validation-provider>
+                              </b-form-group>
 
+                          </div>
+                          <!--eslint-disable-next-line-->
+                          <div v-if="group.name === 'budget'" class="w-50 float-left">
+                              <b-form-group
+                                      label="budget (USD)"
+                                      label-for="budget"
+                              >
+                                  <validation-provider
+                                          rules="between:5,500"
+                                          v-slot="{ errors }"
+                                          name="budget"
+                                  >
+                                      <b-form-input
+                                              id="budget"
+                                              v-model="newOrder.budget"
+                                              type="text"
+                                              :placeholder="group.placeholder"
+                                      ></b-form-input>
+                                      <span>{{ errors[0] }}</span>
+                                  </validation-provider>
+                              </b-form-group>
+                          </div>
+                      </template>
+                      <div class="subtitle px-3 py-2">Please select options (optional)</div>
+                      <div class="options">
+                          <b-container>
+                              <!--eslint-disable-next-line-->
+                              <b-row v-for="option, index in order.options" :key="option.name" class="option-row hr py-2">
+                                  <b-col cols="6" sm="4">{{option.name}}</b-col>
+                                  <b-col cols="4" v-if="option.increase" class="option-description">add ({{option.increase}}%)</b-col>
+                                  <b-col cols="4" v-if="option.price" class="option-description">add (${{option.price}})</b-col>
+                                  <b-col cols="2" sm="4" class="text-right">
+                                      <b-form-radio :value="index" v-model="newOrder.option" name="option" size="sm"></b-form-radio>
+                                  </b-col>
+                              </b-row>
+                              <b-row class="option-row hr py-2">
+                                  <b-col cols="6" sm="4">No option</b-col>
+                                  <b-col cols="4" class="option-description">no add</b-col>
+                                  <b-col cols="2" sm="4" class="text-right">
+                                      <b-form-radio value="" v-model="newOrder.option" name="option" size="sm"></b-form-radio>
+                                  </b-col>
+                              </b-row>
+                          </b-container>
                       </div>
-                      <!--eslint-disable-next-line-->
-                      <div v-if="group.name === 'budget'" class="w-50 float-left">
-                          <b-form-group
-                                  label="budget (USD)"
-                                  label-for="budget"
-                          >
-                              <b-form-input
-                                      id="budget"
-                                      v-model="newOrder.budget"
-                                      type="text"
-                                      required
-                                      :placeholder="group.placeholder"
-                              ></b-form-input>
-                          </b-form-group>
-                      </div>
-                  </template>
+                  </div>
+                  <div class="footer-section">
+                      <b-button :disabled="invalid" block class="mb-2">
+                          <font-awesome-icon icon="shopping-cart" class="cart-icon float-left"/>
+                          <span class="h4">SUBMIT</span>
+                          <span class="totalSum float-right">$ {{totalSum}}</span>
+                      </b-button>
+                  </div>
               </b-form>
-          </div>
-          <div class="subtitle px-3 py-2">Please select options (optional)</div>
-          <div class="body-section">
-              <div class="options">
-                  <b-container>
-                      <!--eslint-disable-next-line-->
-                      <b-row v-for="option, index in order.options" :key="option.name" class="option-row hr py-2">
-                          <b-col cols="6" sm="4">{{option.name}}</b-col>
-                          <b-col cols="4" v-if="option.increase">add ({{option.increase}}%)</b-col>
-                          <b-col cols="4" v-if="option.price">add (${{option.price}})</b-col>
-                          <b-col cols="2" sm="4" class="text-right">
-                              <b-form-radio :value="index" v-model="newOrder.option" name="option" size="sm"></b-form-radio>
-                          </b-col>
-                      </b-row>
-                  </b-container>
-              </div>
-          </div>
-          <div class="footer-section">
-              <b-button block class="mb-2">
-                  <font-awesome-icon icon="shopping-cart" class="cart-icon float-left"/>
-                  <span class="h4">SUBMIT</span>
-                  <span class="totalSum float-right">$ {{totalSum}}</span>
-              </b-button>
-          </div>
+          </ValidationObserver>
       </b-modal>
   </div>
 </template>
 
 <script>
+import { ValidationObserver } from 'vee-validate'
 export default {
+  components: {
+    ValidationObserver
+  },
   props: {
     order: Object
   },
@@ -118,9 +154,15 @@ export default {
         option: '',
         budget: null
       },
-      maxNumbersWriter: 10,
+      maxNumbersWriter: 15,
       writersCountArray: [],
-      sum: null
+      sum: null,
+      isUrl: {
+        regex: "^(?:http(s)?:\\/\\/)?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\(\\)\\*\\+,;=.]+$"
+      },
+      wordsLimit: {
+        regex: '^(?:\\b\\w+\\b[\\s\\r\\n]*){0,50}$'
+      }
     }
   },
   mounted () {
@@ -191,9 +233,15 @@ export default {
         color: #000;
         font-size: 12px;
         font-weight: bold;
+        clear: both;
+        margin-right: -16px;
+        margin-left: -16px;
     }
     .option-row:last-child {
         border-bottom-color: transparent;
+    }
+    .option-description {
+        color: #d6dada;
     }
     .footer-section button, .footer-section button:not(:disabled):not(.disabled):active {
         background: #0052e8;
